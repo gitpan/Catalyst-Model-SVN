@@ -1,0 +1,12 @@
+TODO list for Perl module Handel (in no particular order):
+
+    - create sql from SQL::Translator schema scripts
+    - add taglib test to check for bogus filter names
+    - add sql schema and conversions using SQL::Translator
+    - enhance demo sites to use full feature set
+    - slim taglib code to remove repeated code blocks left for clarity
+    - find translation volunteer other than Google translate
+    - clean up cart test variable names
+    - add additional cart restore w/filter tests for multiple saved carts
+    - devise method for overriding constraints
+    - abstract DBI layer to use Class::DBI, DBIx::CDBICompat, or DBIx::Class

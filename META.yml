@@ -1,0 +1,22 @@
+--- #YAML:1.0
+name: Catalyst::Model::SVN
+abstract: Catalyst Model to browse Subversion repositories
+author: Christopher H. Laco <claco@chrislaco.com>
+version: 0.01
+version_from: lib/Catalyst/Model/SVN.pm
+installdirs: site
+license: perl
+requires:
+  SVN::Core: 0
+  IO::Scalar: 0
+  Path::Class: 0
+  DateTime: 0
+build_requires:
+  Test::More: 0
+recommends:
+  Pod::Coverage: 0.14
+  Test::Pod: 1.00
+  Test::Pod::Coverage: 1.04
+  Test:Strict: 0.05
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17

@@ -1,0 +1,94 @@
+NAME
+    Catalyst::Model::SVN - Catalyst Model to browse Subversion repositories
+
+SYNOPSIS
+        my $path = join('/', $c->req->args);
+        my $revision = $c->req->param('revision') || 'HEAD';
+
+        $c->stash->{'repository_revision'} = MyApp::M::SVN->revision;
+        $c->stash->{'items'} = MyApp::M::SVN->ls($path, $revision);
+
+DESCRIPTION
+    This model class uses the perl-subversion bindings to access a
+    Subversion repository and list items and view their contents. It is
+    currently only a read-only client but may expand to be a fill fledged
+    client at a later time.
+
+CONFIG
+    The following configuration options are available:
+
+  repository
+    This is the full path to the root of your Subversion repository. This
+    can be one of http://, svn://, or file:/// schemes.
+
+  revision
+    This is the default revision to use when no revision is specified. By
+    default, this will be "HEAD".
+
+METHODS
+  cat($path [, $revision])
+    Returns the contents of the path specified.
+
+  ls($path [, $revision])
+    Returns a array of "Catalyst::Model::SVN::Item" objects in list context,
+    each representing an entry in the specified repository path. In scalar
+    context, it returns an array reference.
+
+    Each "Catalyst::Model::SVN::Item" object has the following methods:
+
+    author
+        The author of the latest revision of the current item.
+
+    contents
+        The contents of the of the current item. This is the same as calling
+        "Catalyst::Model::SVN-"cat($item->uri, $item->revision)
+
+    is_directory
+        Returns 1 if the current item is a directory; 0 otherwise.
+
+    is_file
+        Returns 1 if the current item is a file; 0 otherwise.
+
+    kind
+        Returns the kind of the current item. See SVN::Core for the possible
+        types, usually $SVN::Node::path or $SVN::Node::file.
+
+    log Returns the last log entry for the current item. Be forewarned, this
+        makes an extra call to the repository, which is slow. Only use this
+        if you are listing a single item, and not when looping through large
+        collections of items.
+
+    name
+        Returns the name of the current item.
+
+    path
+        Returns the path of the current item relative to the rerpository
+        root.
+
+    revision
+        Returns the revision of the current item.
+
+    size
+        Returns the raw file size in bytes for the current item.
+
+    time
+        Returns the last modified time of the current item as a DateTime
+        object.
+
+    uri Returns the full repository path of the current item.
+
+  repository
+    Returns the repository specified in the configuration "repository"
+    option.
+
+  revision
+    Returns the latest revisions of the repository you are connected to.
+
+SEE ALSO
+    Catalyst::Manual, Catalyst::Helper, Catalyst::Model::SVN
+
+AUTHOR
+        Christopher H. Laco
+        CPAN ID: CLACO
+        claco@chrislaco.com
+        http://today.icantfocus.com/blog/
