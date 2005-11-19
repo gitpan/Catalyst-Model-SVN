@@ -1,4 +1,4 @@
-# $Id: SVN.pm 909 2005-11-02 00:57:06Z claco $
+# $Id: SVN.pm 932 2005-11-19 01:01:27Z claco $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Path::Class;
 use NEXT;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 __PACKAGE__->config(
     revision => 'HEAD'
@@ -52,7 +52,7 @@ sub ls {
     $revision ||= $self->config->{'revision'};
 
     my @nodes;
-	
+
     eval {
         my $items = $self->config->{'client'}->ls($uri->as_string, $revision, 0);
 
@@ -78,12 +78,53 @@ sub cat {
     my ($self, $path, $revision) = @_;
     my $client = $self->config->{'client'};
     my $file = IO::Scalar->new;
+    my $requested_path = $path;
 
-    $client->cat($file, $path, $revision);
+    eval {
+        $client->cat($file, $path, $revision);
+    };
+    if ($@) {
+        $path = $self->_resolve_copy($path, $revision);
+
+        if ($path ne $requested_path) {
+            $client->cat($file, $path, $revision);
+        } else {
+            die $@;
+        };
+    };
+
     $file =~ s/^\s+//g;
     $file =~ s/\s+$//g;
 
     return $file;
+};
+
+sub _resolve_copy {
+    my ($self, $path, $revision) = @_;
+    my $client = $self->config->{'client'};
+    my $copyfrom;
+
+    $client->log([$path], 'HEAD', $revision, 1, 1, sub{
+        return if $copyfrom;
+
+        my ($changes, $revision, $author, $date, $message) = @_;
+
+        if ($changes && scalar keys %{$changes}) {
+            foreach my $change (keys %{$changes}) {
+                my $obj = $changes->{$change};
+                my $action = $obj->action;
+                $copyfrom = $obj->copyfrom_path;
+
+                if ($obj->action eq 'A' && $copyfrom) {
+                     $path =~ s/$change/$copyfrom/;
+
+                    last;
+                };
+            };
+        };
+    });
+
+    return $path;
 };
 
 package Catalyst::Model::SVN::Item;
@@ -99,7 +140,7 @@ sub new {
     my ($class, $args) = @_;
     my $self = bless $args, $class;
 
-    return $self;	
+    return $self;
 };
 
 sub author {
@@ -132,7 +173,8 @@ sub contents {
     my $self = shift;
 
     if ($self->is_file) {
-        return $self->{'repository'}->cat($self->uri, $self->revision);
+        return $self->{'repository'}->cat(
+            ($self->{'realpath'} || $self->uri), $self->revision);
     } else {
         return;
     };
@@ -150,13 +192,19 @@ sub path {
     return $path;
 };
 
+sub realpath {
+    my $self = shift;
+
+    return $self->{'realpath'};
+};
+
 sub uri {
     my $self = shift;
     my $uri = $self->{'uri'};
     my $name = $self->name;
 
     if (!($self->is_file && $self->{'path'} =~ /$name$/)) {
-        return $uri . '/' . $self->name;	
+        return $uri . '/' . $self->name;
     } else {
         return $uri;
     };
@@ -167,21 +215,41 @@ sub log {
     my $item = $self->{'item'};
     my $client = $self->{'repository'}->config->{'client'};
 
-    $client->log(
-        [$self->uri],
-        $self->revision,
-        $self->revision,
-        0,
-        0,
-        sub {$self->_process_log(@_);}
-    );
+    eval {
+        $client->log(
+            [$self->uri],
+            $self->revision,
+            $self->revision,
+            0,
+            0,
+            sub {
+                my ($changes, $revision, $author, $date, $message) = @_;
 
+                $self->{'log'} = $message;
+            }
+        );
+    };
+    if ($@) {
+        my $path = $self->{'repository'}->_resolve_copy($self->uri, $self->revision);
+
+        if ($path ne $self->uri) {
+            $client->log(
+                [$path],
+                $self->revision,
+                $self->revision,
+                0,
+                0,
+                sub {
+                    my ($changes, $revision, $author, $date, $message) = @_;
+
+                    $self->{'log'} = $message;
+                }
+            );
+        } else {
+            die $@;
+        };
+    };
     return $self->{'log'};
-};
-
-sub _process_log {
-    my @logs = @_;
-    shift->{'log'} = $logs[5] || '';
 };
 
 sub size {
@@ -298,7 +366,7 @@ Returns the name of the current item.
 
 =item path
 
-Returns the path of the current item relative to the rerpository root.
+Returns the path of the current item relative to the repository root.
 
 =item revision
 

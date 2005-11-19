@@ -62,7 +62,7 @@ METHODS
         Returns the name of the current item.
 
     path
-        Returns the path of the current item relative to the rerpository
+        Returns the path of the current item relative to the repository
         root.
 
     revision

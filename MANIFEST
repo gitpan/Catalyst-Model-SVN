@@ -9,6 +9,7 @@ META.yml
 README
 t/basic.t
 t/pod_coverage.t
+t/pod_spelling.t
 t/pod_syntax.t
 t/strict.t
 t/warnings.t
