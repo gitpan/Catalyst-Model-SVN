@@ -8,6 +8,7 @@ MANIFEST.SKIP
 META.yml
 README
 t/basic.t
+t/catalyst_helpers_model_svn.t
 t/pod_coverage.t
 t/pod_spelling.t
 t/pod_syntax.t

@@ -1,4 +1,4 @@
-# $Id: SVN.pm 932 2005-11-19 01:01:27Z claco $
+# $Id: SVN.pm 941 2005-11-19 03:27:02Z claco $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Path::Class;
 use NEXT;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 __PACKAGE__->config(
     revision => 'HEAD'
@@ -396,7 +396,7 @@ Returns the latest revisions of the repository you are connected to.
 
 =head1 SEE ALSO
 
-L<Catalyst::Manual>, L<Catalyst::Helper>, L<Catalyst::Model::SVN>
+L<Catalyst::Manual>, L<Catalyst::Helper>, L<SVN::Client>, L<SVN::Ra>
 
 =head1 AUTHOR
 

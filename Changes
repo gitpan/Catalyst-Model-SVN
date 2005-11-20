@@ -1,5 +1,9 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.03 Sat Nov 19 19:22:03 2005
+    - Added t/catalyst_helpers_model_svn.t tests
+    - Fixed various typos
+
 0.02 Fri Nov 17 22:53:18 2005
     - Fixed not found errors when trying to read contents or logs of copies
         Big hats off to Gerard Gerritsen for pointing me in the right direction.

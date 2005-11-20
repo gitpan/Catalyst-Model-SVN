@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 909 2005-11-02 00:57:06Z claco $
+# $Id: Makefile.PL 948 2005-11-19 23:52:57Z claco $
 use ExtUtils::MakeMaker;
 use 5.008;
 use strict;
@@ -10,6 +10,7 @@ WriteMakefile(
     AUTHOR       => 'Christopher H. Laco <claco@chrislaco.com>',
     ABSTRACT     => 'Catalyst Model to browse Subversion repositories',
     PREREQ_PM    => {
+        'Catalyst'    => 5.33,
         'SVN::Core'   => 0,
         'IO::Scalar'  => 0,
         'Path::Class' => 0,
@@ -19,5 +20,6 @@ WriteMakefile(
     (NO_META => 1) : (),
     dist => {
         PREOP => 'pod2text lib/Catalyst/Model/SVN.pm > $(DISTVNAME)/README',
-    }
+    },
+    clean => { FILES => 't/TestApp'},
 );

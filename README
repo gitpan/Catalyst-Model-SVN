@@ -85,7 +85,7 @@ METHODS
     Returns the latest revisions of the repository you are connected to.
 
 SEE ALSO
-    Catalyst::Manual, Catalyst::Helper, Catalyst::Model::SVN
+    Catalyst::Manual, Catalyst::Helper, SVN::Client, SVN::Ra
 
 AUTHOR
         Christopher H. Laco
