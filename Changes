@@ -1,5 +1,9 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.04 Mon Nov 21 22:05:13 2005
+    - Tweaked SYNOPSIS pod
+    - Added pod notes about copy->original path resolution
+
 0.03 Sat Nov 19 19:22:03 2005
     - Added t/catalyst_helpers_model_svn.t tests
     - Fixed various typos

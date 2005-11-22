@@ -1,4 +1,4 @@
-# $Id: SVN.pm 941 2005-11-19 03:27:02Z claco $
+# $Id: SVN.pm 964 2005-11-22 03:23:11Z claco $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Path::Class;
 use NEXT;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 __PACKAGE__->config(
     revision => 'HEAD'
@@ -290,11 +290,22 @@ Catalyst::Model::SVN - Catalyst Model to browse Subversion repositories
 
 =head1 SYNOPSIS
 
-    my $path = join('/', $c->req->args);
-    my $revision = $c->req->param('revision') || 'HEAD';
+    # Model
+    __PACKAGE__->config(
+        repository => '/path/to/svn/root/or/path'
+    );
 
-    $c->stash->{'repository_revision'} = MyApp::M::SVN->revision;
-    $c->stash->{'items'} = MyApp::M::SVN->ls($path, $revision);
+    # Controller
+    sub default : Private {
+        my ($self, $c) = @_;
+        my $path = join('/', $c->req->args);
+        my $revision = $c->req->param('revision') || 'HEAD';
+
+        $c->stash->{'repository_revision'} = MyApp::M::SVN->revision;
+        $c->stash->{'items'} = MyApp::M::SVN->ls($path, $revision);
+
+        $c->stash->{'template'} = 'blog.tt';
+    };
 
 =head1 DESCRIPTION
 
@@ -308,8 +319,8 @@ The following configuration options are available:
 
 =head2 repository
 
-This is the full path to the root of your Subversion repository. This can be one
-of http://, svn://, or file:/// schemes.
+This is the full path to the root of, or any directory in your Subversion
+repository. This can be one of http://, svn://, or file:/// schemes.
 
 =head2 revision
 
@@ -320,13 +331,17 @@ this will be C<HEAD>.
 
 =head2 cat($path [, $revision])
 
-Returns the contents of the path specified.
+Returns the contents of the path specified. If C<path> is a copy, the logs are
+transversed to find original. The request is then reissued for the original path
+for the C<revision> specified.
 
 =head2 ls($path [, $revision])
 
 Returns a array of C<Catalyst::Model::SVN::Item> objects in list context, each
 representing an entry in the specified repository path. In scalar context, it
-returns an array reference.
+returns an array reference.  If C<path> is a copy, the logs are
+transversed to find the original. The request is then reissued for the original
+path for the C<revision> specified.
 
 Each C<Catalyst::Model::SVN::Item> object has the following methods:
 
@@ -358,7 +373,9 @@ usually $SVN::Node::path or $SVN::Node::file.
 
 Returns the last log entry for the current item. Be forewarned, this makes an
 extra call to the repository, which is slow. Only use this if you are listing a
-single item, and not when looping through large collections of items.
+single item, and not when looping through large collections of items. If the
+current item is a copy, the logs are transversed to find the original. The
+request is then reissued for the original path for the C<revision> specified.
 
 =item name
 

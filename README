@@ -2,11 +2,22 @@ NAME
     Catalyst::Model::SVN - Catalyst Model to browse Subversion repositories
 
 SYNOPSIS
-        my $path = join('/', $c->req->args);
-        my $revision = $c->req->param('revision') || 'HEAD';
+        # Model
+        __PACKAGE__->config(
+            repository => '/path/to/svn/root/or/path'
+        );
 
-        $c->stash->{'repository_revision'} = MyApp::M::SVN->revision;
-        $c->stash->{'items'} = MyApp::M::SVN->ls($path, $revision);
+        # Controller
+        sub default : Private {
+            my ($self, $c) = @_;
+            my $path = join('/', $c->req->args);
+            my $revision = $c->req->param('revision') || 'HEAD';
+
+            $c->stash->{'repository_revision'} = MyApp::M::SVN->revision;
+            $c->stash->{'items'} = MyApp::M::SVN->ls($path, $revision);
+
+            $c->stash->{'template'} = 'blog.tt';
+        };
 
 DESCRIPTION
     This model class uses the perl-subversion bindings to access a
@@ -18,8 +29,9 @@ CONFIG
     The following configuration options are available:
 
   repository
-    This is the full path to the root of your Subversion repository. This
-    can be one of http://, svn://, or file:/// schemes.
+    This is the full path to the root of, or any directory in your
+    Subversion repository. This can be one of http://, svn://, or file:///
+    schemes.
 
   revision
     This is the default revision to use when no revision is specified. By
@@ -27,12 +39,16 @@ CONFIG
 
 METHODS
   cat($path [, $revision])
-    Returns the contents of the path specified.
+    Returns the contents of the path specified. If "path" is a copy, the
+    logs are transversed to find original. The request is then reissued for
+    the original path for the "revision" specified.
 
   ls($path [, $revision])
     Returns a array of "Catalyst::Model::SVN::Item" objects in list context,
     each representing an entry in the specified repository path. In scalar
-    context, it returns an array reference.
+    context, it returns an array reference. If "path" is a copy, the logs
+    are transversed to find the original. The request is then reissued for
+    the original path for the "revision" specified.
 
     Each "Catalyst::Model::SVN::Item" object has the following methods:
 
@@ -56,7 +72,9 @@ METHODS
     log Returns the last log entry for the current item. Be forewarned, this
         makes an extra call to the repository, which is slow. Only use this
         if you are listing a single item, and not when looping through large
-        collections of items.
+        collections of items. If the current item is a copy, the logs are
+        transversed to find the original. The request is then reissued for
+        the original path for the "revision" specified.
 
     name
         Returns the name of the current item.
