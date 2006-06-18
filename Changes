@@ -1,5 +1,8 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.05 Sun Jun 18 16:41:25 2006
+    - Added missing use DateTime statement (RT#19882)
+
 0.04 Mon Nov 21 22:05:13 2005
     - Tweaked SYNOPSIS pod
     - Added pod notes about copy->original path resolution

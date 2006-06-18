@@ -1,4 +1,4 @@
-# $Id: SVN.pm 964 2005-11-22 03:23:11Z claco $
+# $Id: SVN.pm 1213 2006-06-18 20:42:22Z claco $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -9,9 +9,10 @@ use IO::Scalar;
 use URI;
 use Path::Class;
 use NEXT;
+use DateTime;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 __PACKAGE__->config(
     revision => 'HEAD'
