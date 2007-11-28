@@ -1,5 +1,15 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.06 Wed Nov 28 01:19:22 2007
+    - Re-written to not leak connections or RAM. SVN::Client removed. Almost complete re-write 'under the hood'.
+    - Test suite which tests the module for real + stress test added
+    - Removed (non working) realpath method on Catalyst::Model::SVN::Item
+    - Added a (horrifically inefficient) propget method to Catalyst::Model::SVN::Item
+    - Cleaned up path handling in cat and ls methods to conform. You can now supply either a path from the repository root, or an entire URI, to both methods.
+    - Path and uri methods now return canonical URIs/paths always (e.g. /f1 not //f1 or svn://host/path rather than svn://host//path)
+    - Move Catalyst::Model::SVN::Item class into it's own file.
+    - Added a test for kwalitee
+
 0.05 Sun Jun 18 16:41:25 2006
     - Added missing use DateTime statement (RT#19882)
 

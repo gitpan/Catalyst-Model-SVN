@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 948 2005-11-19 23:52:57Z claco $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.06/Makefile.PL 713 2005-11-19T23:52:57.264953Z claco  $
 use ExtUtils::MakeMaker;
 use 5.008;
 use strict;

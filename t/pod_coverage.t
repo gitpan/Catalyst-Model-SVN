@@ -1,5 +1,4 @@
-#!perl -wT
-# $Id: pod_coverage.t 909 2005-11-02 00:57:06Z claco $
+#!perl 
 use strict;
 use warnings;
 use Test::More;
@@ -14,5 +13,5 @@ my $trustme = {
     trustme =>
     [qr/^(stringify|new)$/]
 };
-
+use Catalyst::Model::SVN::Item;
 all_pod_coverage_ok($trustme);

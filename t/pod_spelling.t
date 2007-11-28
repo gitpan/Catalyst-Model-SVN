@@ -1,5 +1,5 @@
 #!perl -w
-# $Id: pod_spelling.t 928 2005-11-19 00:57:26Z claco $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.06/t/pod_spelling.t 736 2007-11-28T01:17:49.720742Z bobtfish  $
 use strict;
 use warnings;
 use Test::More;
@@ -17,3 +17,5 @@ all_pod_files_spelling_ok();
 __DATA__
 SVN
 uri
+propget
+versioned

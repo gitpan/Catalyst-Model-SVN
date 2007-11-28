@@ -1,288 +1,175 @@
-# $Id: SVN.pm 1213 2006-06-18 20:42:22Z claco $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.06/lib/Catalyst/Model/SVN.pm 736 2007-11-28T01:17:49.720742Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
 use SVN::Core;
-use SVN::Client;
 use SVN::Ra;
 use IO::Scalar;
 use URI;
-use Path::Class;
+use Path::Class qw( dir file );
 use NEXT;
 use DateTime;
+use Catalyst::Model::SVN::Item;
+use Scalar::Util qw/blessed/;
+use Carp qw/confess/;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
-__PACKAGE__->config(
-    revision => 'HEAD'
-);
+__PACKAGE__->config( revision => 'HEAD' );
 
 sub new {
-    my ($self, $c) = @_;
+    my ( $self, $c ) = @_;
     $self = $self->NEXT::new(@_);
 
-    $self->config->{'client'} =
-        SVN::Client->new(auth => [SVN::Client::get_simple_provider()]),
-
-    $self->config->{'ra'} =
-        SVN::Ra->new($self->config->{'repository'});
+    my $root_pool = SVN::Pool->new_default;
+    my $ra        = SVN::Ra->new(
+        url  => $self->repository,
+        auth => undef,
+        pool => $root_pool
+    );
+    $self->{pool} = $root_pool;
+    $self->{ra}   = $ra;
 
     return $self;
-};
+}
+
+sub _ra {
+    my $self = shift;
+    confess('Need an instance') unless blessed $self;
+    return $self->{ra};
+}
 
 sub revision {
-    my $self = shift;
-    my $ra = $self->config->{'ra'};
-
-    return $ra->get_latest_revnum();
-};
+    my $self    = shift;
+    my $subpool = SVN::Pool::new_default_sub;
+    return $self->_ra->get_latest_revnum();
+}
 
 sub repository {
-    my $self = shift;
+    my ($self) = @_;
 
-    return $self->config->{'repository'};
-};
+    return $self->{repos} if $self->{repos};
+
+    my $repos = $self->config->{repository};
+    confess('No configured repository!') unless defined $repos;
+
+    return $self->{repos} = URI->new($repos);
+}
 
 sub ls {
-    my ($self, $path, $revision) = @_;
-    my $uri = URI->new($self->repository);
-    my $fullpath = dir($uri->path, ($path || '/'))->as_foreign('Unix');
-    $uri->path($fullpath);
-
-    $revision ||= $self->config->{'revision'};
+    my ( $self, $path, $revision ) = @_;
+    $path ||= '/';
+    my $repos_path = URI->new($path)->path;
+    my $ra_path = dir( $self->repository->path, $repos_path );
+    $revision ||= $self->config->{revision};
+    if ( $revision eq 'HEAD' ) {
+        $revision = $SVN::Core::INVALID_REVNUM;
+    }
+    my $subpool = SVN::Pool::new_default_sub;
 
     my @nodes;
 
-    eval {
-        my $items = $self->config->{'client'}->ls($uri->as_string, $revision, 0);
+    my ( $dirents, $revnum, $props )
+        = $self->_ra->get_dir( $ra_path->stringify, $revision );
 
-        @nodes = map {
-            Catalyst::Model::SVN::Item->new({
-                name => $_,
-                item => $items->{$_},
-                repository => $self,
-                path => $path,
-                uri  => $uri->as_string
-            })
-        } sort keys %{$items};
-    };
+# Note that simple data which comes back here is ok, but the dirents data structure
+# will be magically deallocated when $subpool goes out of scope, so we borg all the
+# info from it now..
 
-    if (wantarray) {
-        return @nodes;
-    } else {
-        return \@nodes;
-    };
-};
-
-sub cat {
-    my ($self, $path, $revision) = @_;
-    my $client = $self->config->{'client'};
-    my $file = IO::Scalar->new;
-    my $requested_path = $path;
-
-    eval {
-        $client->cat($file, $path, $revision);
-    };
-    if ($@) {
-        $path = $self->_resolve_copy($path, $revision);
-
-        if ($path ne $requested_path) {
-            $client->cat($file, $path, $revision);
-        } else {
-            die $@;
-        };
-    };
-
-    $file =~ s/^\s+//g;
-    $file =~ s/\s+$//g;
-
-    return $file;
-};
-
-sub _resolve_copy {
-    my ($self, $path, $revision) = @_;
-    my $client = $self->config->{'client'};
-    my $copyfrom;
-
-    $client->log([$path], 'HEAD', $revision, 1, 1, sub{
-        return if $copyfrom;
-
-        my ($changes, $revision, $author, $date, $message) = @_;
-
-        if ($changes && scalar keys %{$changes}) {
-            foreach my $change (keys %{$changes}) {
-                my $obj = $changes->{$change};
-                my $action = $obj->action;
-                $copyfrom = $obj->copyfrom_path;
-
-                if ($obj->action eq 'A' && $copyfrom) {
-                     $path =~ s/$change/$copyfrom/;
-
-                    last;
-                };
-            };
-        };
-    });
-
-    return $path;
-};
-
-package Catalyst::Model::SVN::Item;
-use strict;
-use warnings;
-use Path::Class;
-use SVN::Core;
-use SVN::Client;
-use DateTime;
-use overload '""' => \&stringify, fallback => 1;
-
-sub new {
-    my ($class, $args) = @_;
-    my $self = bless $args, $class;
-
-    return $self;
-};
-
-sub author {
-    return shift->{'item'}->last_author;
-};
-
-sub name {
-    return shift->{'name'};
-};
-
-sub is_directory {
-    my $self = shift;
-    my $kind = $self->kind;
-
-    return $kind == $SVN::Node::dir ? 1 : 0 ;
-};
-
-sub is_file {
-    my $self = shift;
-    my $kind = $self->kind;
-
-    return $kind == $SVN::Node::file ? 1 : 0 ;
-};
-
-sub kind {
-    return shift->{'item'}->kind;
-};
-
-sub contents {
-    my $self = shift;
-
-    if ($self->is_file) {
-        return $self->{'repository'}->cat(
-            ($self->{'realpath'} || $self->uri), $self->revision);
-    } else {
-        return;
-    };
-};
-
-sub path {
-    my $self = shift;
-    my $path = $self->{'path'};
-    my $name = $self->name;
-
-    if (!($self->is_file && $path =~ /$name$/)) {
-        $path = $path ? $path . '/' . $self->name : $self->name;
-    };
-
-    return $path;
-};
-
-sub realpath {
-    my $self = shift;
-
-    return $self->{'realpath'};
-};
-
-sub uri {
-    my $self = shift;
-    my $uri = $self->{'uri'};
-    my $name = $self->name;
-
-    if (!($self->is_file && $self->{'path'} =~ /$name$/)) {
-        return $uri . '/' . $self->name;
-    } else {
-        return $uri;
-    };
-};
-
-sub log {
-    my $self = shift;
-    my $item = $self->{'item'};
-    my $client = $self->{'repository'}->config->{'client'};
-
-    eval {
-        $client->log(
-            [$self->uri],
-            $self->revision,
-            $self->revision,
-            0,
-            0,
-            sub {
-                my ($changes, $revision, $author, $date, $message) = @_;
-
-                $self->{'log'} = $message;
+    @nodes = map {
+        Catalyst::Model::SVN::Item->new(
+            {   repos       => $self->repository,
+                name        => $_,
+                path        => $path,
+                svn         => $self,
+                size        => $dirents->{$_}->size,
+                kind        => $dirents->{$_}->kind,
+                time        => $dirents->{$_}->time,
+                author      => $dirents->{$_}->last_author,
+                created_rev => $dirents->{$_}->created_rev,
             }
         );
+    } sort keys %{$dirents};
+
+    return wantarray ? @nodes : \@nodes;
+}
+
+sub cat {
+    my ( $self, $path, $revision ) = @_;
+    return ( $self->_cat( $path, $revision ) )[0];
+}
+
+# FIXME - awful method name here... Does both cat and propget.
+# Also, is it possible to retrieve *just* the properties?
+sub _cat {
+    my ( $self, $path, $revision ) = @_;
+    $path ||= '/';
+    my $repos_path = URI->new($path)->path;
+    $revision = undef if ( $revision eq 'HEAD' );
+    $revision ||= $SVN::Core::INVALID_REVNUM;
+    my $requested_path = $repos_path;
+    my $file           = IO::Scalar->new;
+    my $subpool        = SVN::Pool::new_default_sub;
+    my ( $revnum, $props );
+    use Data::Dumper;
+    eval {
+        ( $revnum, $props )
+            = $self->_ra->get_file( $repos_path, $revision, $file );
+
+# FIXME - HUH? Do we really want to do this, surely we break the file contents?
+        $file =~ s/^\s+//g;
+        $file =~ s/\s+$//g;
     };
-    if ($@) {
-        my $path = $self->{'repository'}->_resolve_copy($self->uri, $self->revision);
+    return ( $file, $props ) unless $@;
 
-        if ($path ne $self->uri) {
-            $client->log(
-                [$path],
-                $self->revision,
-                $self->revision,
-                0,
-                0,
-                sub {
-                    my ($changes, $revision, $author, $date, $message) = @_;
+    # Handle dictionary case..
+    if ( $@ =~ /Attempted to get checksum of a \*non\*-file node/ ) {
+        return;
+    }
 
-                    $self->{'log'} = $message;
+    if ( $@ =~ /ile not found/ ) {
+        $repos_path = $self->_resolve_copy( $repos_path, $revision );
+
+        if ( $repos_path ne $requested_path ) {
+            return $self->_cat( $repos_path, $revision );
+        }
+    }
+
+    die $@;
+}
+
+sub _resolve_copy {
+    my ( $self, $path, $revision ) = @_;
+    my $subpool = SVN::Pool::new_default_sub;
+
+    my $copyfrom;
+    $self->_ra->get_log(
+        [$path],                       # const apr_array_header_t *paths,
+        $self->_ra->get_latest_revnum, # svn_revnum_t start,
+        $revision,                     # svn_revnum_t end,
+        1,                             # svn_boolean_t discover_changed_paths,
+        1,                             # svn_boolean_t strict_node_history,
+        1,       # svn_boolean_t include_merged_revisions,
+        sub {    # svn_log_entry_receiver_t receiver, void *receiver_baton
+            return if $copyfrom;
+            my $changes = shift;
+            foreach my $change ( keys %$changes ) {
+                my $obj    = $changes->{$change};
+                my $action = $obj->action;
+                $copyfrom = $obj->copyfrom_path;
+                if ( $obj->action eq 'A' && $copyfrom ) {
+                    $path =~ s/$change/$copyfrom/;
+                    last;
                 }
-            );
-        } else {
-            die $@;
-        };
-    };
-    return $self->{'log'};
-};
-
-sub size {
-    return shift->{'item'}->size;
-};
-
-sub time {
-    my $self = shift;
-    my $time = DateTime->from_epoch(
-        epoch => substr($self->{'item'}->time, 0, 10)
+            }
+        },
     );
-
-    $time->add_duration(
-        DateTime::Duration->new(nanoseconds => substr($self->{'item'}->time, 10))
-    );
-
-    $time->set_time_zone('UTC');
-
-    return $time;
-};
-
-sub revision {
-    return shift->{'item'}->created_rev;
-};
-
-sub stringify {
-    my $self = shift;
-
-    return $self->{'name'};
-};
+    return $path;
+}
 
 1;
+
 __END__
 
 =head1 NAME
@@ -320,8 +207,10 @@ The following configuration options are available:
 
 =head2 repository
 
-This is the full path to the root of, or any directory in your Subversion
-repository. This can be one of http://, svn://, or file:/// schemes.
+Returns a URI object of the full path to the root of, or any directory in your Subversion
+repository. This can be one of http://, svn://, or file:/// schemes. 
+
+This value comes from the config key 'repository'.
 
 =head2 revision
 
@@ -338,71 +227,11 @@ for the C<revision> specified.
 
 =head2 ls($path [, $revision])
 
-Returns a array of C<Catalyst::Model::SVN::Item> objects in list context, each
+Returns a array of L<Catalyst::Model::SVN::Item> objects in list context, each
 representing an entry in the specified repository path. In scalar context, it
 returns an array reference.  If C<path> is a copy, the logs are
 transversed to find the original. The request is then reissued for the original
 path for the C<revision> specified.
-
-Each C<Catalyst::Model::SVN::Item> object has the following methods:
-
-=over
-
-=item author
-
-The author of the latest revision of the current item.
-
-=item contents
-
-The contents of the of the current item. This is the same as
-calling C<Catalyst::Model::SVN->cat($item->uri, $item->revision)
-
-=item is_directory
-
-Returns 1 if the current item is a directory; 0 otherwise.
-
-=item is_file
-
-Returns 1 if the current item is a file; 0 otherwise.
-
-=item kind
-
-Returns the kind  of the current item. See L<SVN::Core> for the possible types,
-usually $SVN::Node::path or $SVN::Node::file.
-
-=item log
-
-Returns the last log entry for the current item. Be forewarned, this makes an
-extra call to the repository, which is slow. Only use this if you are listing a
-single item, and not when looping through large collections of items. If the
-current item is a copy, the logs are transversed to find the original. The
-request is then reissued for the original path for the C<revision> specified.
-
-=item name
-
-Returns the name of the current item.
-
-=item path
-
-Returns the path of the current item relative to the repository root.
-
-=item revision
-
-Returns the revision of the current item.
-
-=item size
-
-Returns the raw file size in bytes for the current item.
-
-=item time
-
-Returns the last modified time of the current item as a L<DateTime> object.
-
-=item uri
-
-Returns the full repository path of the current item.
-
-=back
 
 =head2 repository
 
@@ -414,11 +243,16 @@ Returns the latest revisions of the repository you are connected to.
 
 =head1 SEE ALSO
 
-L<Catalyst::Manual>, L<Catalyst::Helper>, L<SVN::Client>, L<SVN::Ra>
+L<Catalyst::Manual>, L<Catalyst::Helper>, L<Catalyst::Model::SVN::Item>, L<SVN::Ra>
 
-=head1 AUTHOR
+=head1 AUTHORS
 
     Christopher H. Laco
     CPAN ID: CLACO
     claco@chrislaco.com
     http://today.icantfocus.com/blog/
+    
+    Tomas Doran
+    CPAN ID: BOBTFISH
+    bobtfish@bobtfish.net
+    

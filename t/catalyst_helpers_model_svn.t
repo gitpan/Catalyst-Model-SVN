@@ -1,5 +1,5 @@
 #!perl -w
-# $Id: catalyst_helpers_model_svn.t 949 2005-11-19 23:54:36Z claco $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.06/t/catalyst_helpers_model_svn.t 714 2005-11-19T23:54:36.118397Z claco  $
 use strict;
 use warnings;
 use Test::More;

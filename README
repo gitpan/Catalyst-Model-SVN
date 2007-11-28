@@ -4,7 +4,8 @@ NAME
 SYNOPSIS
         # Model
         __PACKAGE__->config(
-            repository => '/path/to/svn/root/or/path'
+            repository => '/path/to/svn/root/or/path',
+            revision   => 'HEAD,
         );
 
         # Controller
