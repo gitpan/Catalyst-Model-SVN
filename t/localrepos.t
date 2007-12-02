@@ -9,7 +9,7 @@ use Catalyst::Model::SVN;
 use Test::More;
 use Test::Exception; 
 
-my $TESTS = 50;
+my $TESTS = 51;
 my ($testlib, $repos_uri);
 eval {
     $testlib = TestLib->new();
@@ -21,8 +21,7 @@ plan tests => $TESTS;
 
 print "Starting real testing:\n";
 
-# Commented as produces a Bus error in 0.05.. 
-#throws_ok { Catalyst::Model::SVN->new() } qr/repository/, 'Throws with no config';
+throws_ok { Catalyst::Model::SVN->new() } qr/repository/, 'Throws with no config';
 
 lives_ok {
     Catalyst::Model::SVN->config(
@@ -37,9 +36,6 @@ lives_ok { $m = Catalyst::Model::SVN->new(); } 'Can construct';
     my $r = $m->revision;
     is($r, 5, 'Repository revision is 5 (5 commits)');
 }
-
-# In 0.05 ls needs a reposless path, and cat needs the repos on the path, fail!
-# To move forward, I think we should automagically deal with either context.
 
 # Try a really simple ls in both scalar and list contexts..
 my (@l, $l);

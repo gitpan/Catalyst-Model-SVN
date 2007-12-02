@@ -1,11 +1,12 @@
 #!perl -w
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.06/t/catalyst_helpers_model_svn.t 714 2005-11-19T23:54:36.118397Z claco  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.07/t/catalyst_helpers_model_svn.t 742 2007-12-02T18:41:42.439142Z bobtfish  $
 use strict;
 use warnings;
 use Test::More;
 use Cwd;
 use File::Path;
 use File::Spec::Functions;
+use FindBin ();
 
 BEGIN {
     eval 'use Catalyst 5';

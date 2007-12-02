@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.06/lib/Catalyst/Model/SVN.pm 736 2007-11-28T01:17:49.720742Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.07/lib/Catalyst/Model/SVN.pm 742 2007-12-02T18:41:42.439142Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ use Scalar::Util qw/blessed/;
 use Carp qw/confess/;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 __PACKAGE__->config( revision => 'HEAD' );
 
@@ -59,9 +59,7 @@ sub repository {
 
 sub ls {
     my ( $self, $path, $revision ) = @_;
-    $path ||= '/';
-    my $repos_path = URI->new($path)->path;
-    my $ra_path = dir( $self->repository->path, $repos_path );
+    
     $revision ||= $self->config->{revision};
     if ( $revision eq 'HEAD' ) {
         $revision = $SVN::Core::INVALID_REVNUM;
@@ -69,9 +67,8 @@ sub ls {
     my $subpool = SVN::Pool::new_default_sub;
 
     my @nodes;
-
     my ( $dirents, $revnum, $props )
-        = $self->_ra->get_dir( $ra_path->stringify, $revision );
+        = $self->_ra->get_dir( _ra_path( $self, $path )->stringify, $revision );
 
 # Note that simple data which comes back here is ok, but the dirents data structure
 # will be magically deallocated when $subpool goes out of scope, so we borg all the
@@ -95,18 +92,45 @@ sub ls {
     return wantarray ? @nodes : \@nodes;
 }
 
+=for comment _ra_path( $path )
+
+Takes a path or URL, and returns a normalised from relative to the 
+configured repository path.
+
+=cut
+
+sub _ra_path { # FIXME - This is fugly..
+    my ( $self, $path ) = @_;
+    $path ||= '/'; 
+    my $uri = URI->new($path);
+    my $ra_path;
+    if ($uri->scheme) {
+        # Was full URI
+        $ra_path = dir( $uri->path );
+    }
+    else {
+        $ra_path = dir( $self->repository->path, $uri->path );
+    }
+        
+    return $ra_path;
+}
+
 sub cat {
     my ( $self, $path, $revision ) = @_;
     return ( $self->_cat( $path, $revision ) )[0];
 }
 
-# FIXME - awful method name here... Does both cat and propget.
-# Also, is it possible to retrieve *just* the properties?
+=for comment
+
+  FIXME - awful method name here... Does both cat and propget.
+  Also, is it possible to retrieve *just* the properties?
+
+=cut 
+
 sub _cat {
     my ( $self, $path, $revision ) = @_;
-    $path ||= '/';
-    my $repos_path = URI->new($path)->path;
-    $revision = undef if ( $revision eq 'HEAD' );
+    my $repos_path = _ra_path( $self, $path );
+    $revision = undef if ( defined $revision && $revision eq 'HEAD' );
     $revision ||= $SVN::Core::INVALID_REVNUM;
     my $requested_path = $repos_path;
     my $file           = IO::Scalar->new;
@@ -117,7 +141,8 @@ sub _cat {
         ( $revnum, $props )
             = $self->_ra->get_file( $repos_path, $revision, $file );
 
-# FIXME - HUH? Do we really want to do this, surely we break the file contents?
+        # FIXME - HUH? Do we really want to do this, surely we break the file contents?
+        # TODO  - Add a test..
         $file =~ s/^\s+//g;
         $file =~ s/\s+$//g;
     };

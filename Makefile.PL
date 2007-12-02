@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.06/Makefile.PL 713 2005-11-19T23:52:57.264953Z claco  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.07/Makefile.PL 742 2007-12-02T18:41:42.439142Z bobtfish  $
 use ExtUtils::MakeMaker;
 use 5.008;
 use strict;
@@ -7,14 +7,15 @@ use warnings FATAL => 'all';
 WriteMakefile(
     NAME         => 'Catalyst::Model::SVN',
     VERSION_FROM => 'lib/Catalyst/Model/SVN.pm',
-    AUTHOR       => 'Christopher H. Laco <claco@chrislaco.com>',
+    AUTHOR       => 'Christopher H. Laco <claco@chrislaco.com>, Tomas Doran <bobtfish@bobtfish.net>',
     ABSTRACT     => 'Catalyst Model to browse Subversion repositories',
     PREREQ_PM    => {
-        'Catalyst'    => 5.33,
-        'SVN::Core'   => 0,
-        'IO::Scalar'  => 0,
-        'Path::Class' => 0,
-        'DateTime'    => 0
+        'Catalyst::Runtime'     => 0,
+        'Catalyst::Devel'       => 0, # Build dep
+        'SVN::Core'             => 0,
+        'IO::Scalar'            => 0,
+        'Path::Class'           => 0,
+        'DateTime'              => 0
     },
     (ExtUtils::MakeMaker->VERSION >= 6.11) ?
     (NO_META => 1) : (),

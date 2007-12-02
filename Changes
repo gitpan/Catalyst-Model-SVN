@@ -1,5 +1,10 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.07 Sun Dec 2 18:41:02 200?
+    - Fix test failures from CPANTS (due to us not requiring Catalyst::Devel)
+    - Test a root which isn't at /, fix bugs in path resolution attaining to same ;)
+    - Fix META.yml authors
+
 0.06 Wed Nov 28 01:19:22 2007
     - Re-written to not leak connections or RAM. SVN::Client removed. Almost complete re-write 'under the hood'.
     - Test suite which tests the module for real + stress test added
