@@ -70,7 +70,7 @@ sub create_svn_repos {
     {
         my $F;
         open($F, '>', 'f1') || die;
-        print $F "File 1, rev 1\n";
+        print $F "  File 1, rev 1\n  ";
         close $F;
     };
 

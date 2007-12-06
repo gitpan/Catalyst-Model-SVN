@@ -9,7 +9,7 @@ use Catalyst::Model::SVN;
 use Test::More;
 use Test::Exception; 
 
-my $TESTS = 51;
+my $TESTS = 60;
 my ($testlib, $repos_uri);
 eval {
     $testlib = TestLib->new();
@@ -52,7 +52,8 @@ lives_ok {$l3 = $m->ls($repos_uri, 2)} 'ls (scalar) uri with explicit revision, 
 ok(scalar(@$l3) == 2, 'Have 2 top level items in ls uri');
 is_deeply($l3, $l, 'Scalar and list context ls compare the same uri');
 
-# Test something which doesn't exist when you ls it for all the above?
+throws_ok {$m->ls('/bfgjghjfh', 2)} qr/File not found/, 'File which doesn not exist ls throws';
+throws_ok {$m->ls($repos_uri . 'etgjhbhjjb', 2)} qr/File not found/, 'File which doesn not exist ls throws';
 
 my $f = $l->[0];
 # Tests for a single file f (from ls)
@@ -67,6 +68,7 @@ ok(!$f->is_directory, 'f is not directory');
     ok(length $c1, 'File has contents (1)');
     ok(length $c2, 'File has contents (2)');
     is($c1, $c2, 'Contents two times is the same');
+    is($c1, "  File 1, rev 1\n  ", 'Contents as expected');
 };
 
 ok(!defined($f->author), 'Author is undef');
@@ -100,15 +102,36 @@ foreach my $method (qw(path uri)) {
 
 # Try to get a file with cat, using both uri and local paths.
 # URI
-lives_ok {$f = $m->cat($repos_uri . 'f1', 'HEAD')} 'cat top level file with whole URI';
-ok($f, 'cat method fetches f1 back (full uri)');
-#Paths only.
+{
+    my $f;
+    lives_ok {$f = $m->cat($repos_uri . 'f1', 'HEAD')} 'cat top level file with whole URI';
+    ok($f, 'cat method fetches f1 back (full uri)');
+};
 
+#Paths only.
 {
     my $f;
     lives_ok {$f = $m->cat('/f1', 'HEAD')} 'cat top level file with just path';
     ok($f, 'cat method fetched f1 back (just path)'); 
+    is($f, "  File 1, rev 1\n  ", 'Contents as expected');
 };
+
+# Try propget and propget_hr methods on a known path.
+{
+    my $p;
+    lives_ok {$p = $m->properties_hr('/f1') } 'properties_hr on model direct lives';
+    my $mime;
+    lives_ok {$mime = $m->propget('/f1', 'svn:mime-type')} 'propget on model direct lives';
+    is(ref($p), 'HASH', 'properties_hr returns hashref');
+    is($mime, 'text/plain', 'mime type from propget as expected');
+    my $expected = { 
+        'svn:mime-type' => $mime,
+        'svn:entry:committed-rev' => '3',
+        'svn:entry:committed-date' => $p->{'svn:entry:committed-date'},
+        'svn:entry:uuid' => $p->{'svn:entry:uuid'},
+    }; 
+    is_deeply($p, $expected, 'properties_hr returns expected hashref');
+}
 
 # Tests for the directory returned (/)
 my $d = $l->[1]; # Get back /subdir (2nd item in list)
@@ -128,6 +151,8 @@ lives_ok {
     my $n = $oldfile->name;
     ok($l, 'resolve_copy in log');
 } 'resolve_copy testing';
+
+# FIXME - check coverage for resolve_copy testing.
 
 # $testlib goes out of scope, and automatically cleans up.
 

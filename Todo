@@ -1,14 +1,12 @@
 TODO list for Perl module Catalyst::Model::SVN:
 
-Pre 0.08 release:
-    - Fix propget inefficiency
-    - Test / fix content regex?
-
 Pre 0.09 release:
+    - Fix propget inefficiency? ( Turn item returned by cat into an object? )
+
+Pre 0.10 release:
 	- Test resolve_copy in some more unusual situations
 	- Test resolve_copy across multiple moves
 	- Add helpers tests
 
 Future:
-    - Turn item returned by cat into an object?
     - Add write support

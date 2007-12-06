@@ -1,8 +1,8 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.07/Makefile.PL 742 2007-12-02T18:41:42.439142Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.08/Makefile.PL 753 2007-12-06T18:23:38.850954Z bobtfish  $
 use ExtUtils::MakeMaker;
 use 5.008;
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 
 WriteMakefile(
     NAME         => 'Catalyst::Model::SVN',

@@ -1,5 +1,5 @@
 #!perl -wT
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.07/t/pod_syntax.t 694 2005-11-02T00:57:06.696032Z claco  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.08/t/pod_syntax.t 694 2005-11-02T00:57:06.696032Z claco  $
 use strict;
 use warnings;
 use Test::More;

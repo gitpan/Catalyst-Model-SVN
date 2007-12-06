@@ -1,5 +1,11 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.08 
+    - Make _repos_path collapse URLs with multiple // in them. Tests for this.
+    - Stop warnings being fatal in the Makefile, this breaks me on some perls.
+    - Add propget as a method on Model::SVN, as well as on ::Items. Tests for this.
+    - Test / fix content regex I thought was dodgy.
+
 0.07 Sun Dec 2 18:41:02 200?
     - Fix test failures from CPANTS (due to us not requiring Catalyst::Devel)
     - Test a root which isn't at /, fix bugs in path resolution attaining to same ;)

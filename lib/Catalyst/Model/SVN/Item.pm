@@ -8,6 +8,8 @@ use DateTime;
 use Carp qw( confess );
 use overload '""' => \&stringify, fallback => 1;
 
+our $VERSION = '0.08';
+
 sub new {
     my ( $class, $args ) = @_;
     confess('new needs a hashref parameter') unless ref($args) eq 'HASH';
@@ -37,7 +39,7 @@ sub is_file {
     my $self = shift;
     my $kind = $self->kind;
 
-    return ( $kind == $SVN::Node::file ) ? 1 : 0;    # FIXME
+    return ( $kind == $SVN::Node::file ) ? 1 : 0;
 }
 
 # In the cat case, a kind ($SVN::Node::File) is passed in the constructor.
@@ -52,7 +54,7 @@ sub propget {
     confess('No propname passed') unless defined $propname;
     return $self->{props}->{$propname} if exists $self->{props};
     $self->{props}
-        = ( $self->{svn}->_cat( $self->path, $self->revision ) )
+        = ( $self->{svn}->_get_file( $self->path, $self->revision ) )
         [1];
     return $self->{props}->{$propname};
 }
@@ -62,8 +64,6 @@ sub contents {
 
     return $self->{contents} if exists $self->{contents};
 
-  #FIXME - this is ugly as sin, we generate another item to get it's contents,
-  #        put it in here then discard the object.
     my $location = dir( $self->{path}, $self->{name} )->stringify;
     return $self->{contents}
         = $self->{svn}->cat( $location, $self->revision );

@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.07/lib/Catalyst/Model/SVN.pm 742 2007-12-02T18:41:42.439142Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.08/lib/Catalyst/Model/SVN.pm 758 2007-12-06T18:25:06.581316Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -11,10 +11,10 @@ use NEXT;
 use DateTime;
 use Catalyst::Model::SVN::Item;
 use Scalar::Util qw/blessed/;
-use Carp qw/confess/;
+use Carp qw/confess croak/;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 __PACKAGE__->config( revision => 'HEAD' );
 
@@ -101,15 +101,16 @@ configured repository path.
 
 sub _ra_path { # FIXME - This is fugly..
     my ( $self, $path ) = @_;
-    $path ||= '/'; 
+    $path ||= '/';
     my $uri = URI->new($path);
+    $path =~ s|//+|/|;
     my $ra_path;
     if ($uri->scheme) {
         # Was full URI
-        $ra_path = dir( $uri->path );
+        $ra_path = file( $uri->path );
     }
     else {
-        $ra_path = dir( $self->repository->path, $uri->path );
+        $ra_path = file( $self->repository->path, $path );
     }
         
     return $ra_path;
@@ -117,17 +118,34 @@ sub _ra_path { # FIXME - This is fugly..
 
 sub cat {
     my ( $self, $path, $revision ) = @_;
-    return ( $self->_cat( $path, $revision ) )[0];
+    return ( $self->_get_file( $path, $revision ) )[0];
 }
 
-=for comment
+sub propget {
+    my ( $self, $path, $propname, $revision ) = @_;
 
-  FIXME - awful method name here... Does both cat and propget.
-  Also, is it possible to retrieve *just* the properties?
+    croak('No propname passed to propget method') unless defined $propname;
+    
+    my $props_hr = $self->properties_hr($path, $revision);
+    return $props_hr->{$propname}
+}
 
-=cut 
+sub properties_hr {
+    my ( $self, $path, $revision ) = @_;
 
-sub _cat {
+    croak('No path passed to props_hr method') unless defined $path;
+    
+    return ( $self->_get_file( $path, $revision ) )[1];
+}
+
+=for comment _get_file( $path [, $revision] )
+
+Calls the L<SVN::Ra> get_file method. Handles directories and files which 
+have moved in older revisions
+
+=cut
+
+sub _get_file {
     my ( $self, $path, $revision ) = @_;
     my $repos_path = _ra_path( $self, $path );
     $revision = undef if ( defined $revision && $revision eq 'HEAD' );
@@ -141,10 +159,6 @@ sub _cat {
         ( $revnum, $props )
             = $self->_ra->get_file( $repos_path, $revision, $file );
 
-        # FIXME - HUH? Do we really want to do this, surely we break the file contents?
-        # TODO  - Add a test..
-        $file =~ s/^\s+//g;
-        $file =~ s/\s+$//g;
     };
     return ( $file, $props ) unless $@;
 
@@ -157,7 +171,7 @@ sub _cat {
         $repos_path = $self->_resolve_copy( $repos_path, $revision );
 
         if ( $repos_path ne $requested_path ) {
-            return $self->_cat( $repos_path, $revision );
+            return $self->_get_file( $repos_path, $revision );
         }
     }
 
@@ -257,6 +271,17 @@ representing an entry in the specified repository path. In scalar context, it
 returns an array reference.  If C<path> is a copy, the logs are
 transversed to find the original. The request is then reissued for the original
 path for the C<revision> specified.
+
+=head2 propget($path, $propname [, $revision])
+
+Returns a specific property for a path at a specified revision name.
+
+Note: This method is inefficient, if you want to extract multiple properties 
+of a single item then use the props_hr method.
+
+=head2 properties_hr($path [, $revision])
+
+Returns a reference to a hash with all the properties set on an object at a specific revision.
 
 =head2 repository
 
