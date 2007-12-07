@@ -8,7 +8,7 @@ use DateTime;
 use Carp qw( confess );
 use overload '""' => \&stringify, fallback => 1;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 sub new {
     my ( $class, $args ) = @_;
@@ -64,6 +64,7 @@ sub contents {
 
     return $self->{contents} if exists $self->{contents};
 
+    # FIXME - use _ra_path?
     my $location = dir( $self->{path}, $self->{name} )->stringify;
     return $self->{contents}
         = $self->{svn}->cat( $location, $self->revision );
@@ -72,6 +73,7 @@ sub contents {
 
 sub path {
     my ( $self ) = @_;
+    # FIXME - use _ra_path?
     return file( $self->{path}, $self->name )->stringify;
 }
 

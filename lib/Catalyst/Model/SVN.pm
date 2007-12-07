@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.08/lib/Catalyst/Model/SVN.pm 758 2007-12-06T18:25:06.581316Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.09/lib/Catalyst/Model/SVN.pm 766 2007-12-07T11:43:20.989565Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ use Scalar::Util qw/blessed/;
 use Carp qw/confess croak/;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 __PACKAGE__->config( revision => 'HEAD' );
 
@@ -68,7 +68,7 @@ sub ls {
 
     my @nodes;
     my ( $dirents, $revnum, $props )
-        = $self->_ra->get_dir( _ra_path( $self, $path )->stringify, $revision );
+        = $self->_ra->get_dir( _ra_path( $self, $path ), $revision );
 
 # Note that simple data which comes back here is ok, but the dirents data structure
 # will be magically deallocated when $subpool goes out of scope, so we borg all the
@@ -92,12 +92,10 @@ sub ls {
     return wantarray ? @nodes : \@nodes;
 }
 
-=for comment _ra_path( $path )
-
-Takes a path or URL, and returns a normalised from relative to the 
-configured repository path.
-
-=cut
+# _ra_path( $path )
+#
+# Takes a path or URL, and returns a normalised from relative to the 
+# configured repository path.
 
 sub _ra_path { # FIXME - This is fugly..
     my ( $self, $path ) = @_;
@@ -112,7 +110,10 @@ sub _ra_path { # FIXME - This is fugly..
     else {
         $ra_path = file( $self->repository->path, $path );
     }
-        
+    
+    $ra_path = $ra_path->stringify;
+    $ra_path =~ s|/$||; # Remove trailing / or svn can crash
+    
     return $ra_path;
 }
 

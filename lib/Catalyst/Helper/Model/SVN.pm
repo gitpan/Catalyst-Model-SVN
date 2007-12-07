@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.08/lib/Catalyst/Helper/Model/SVN.pm 695 2005-11-02T00:59:12.554101Z claco  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.09/lib/Catalyst/Helper/Model/SVN.pm 695 2005-11-02T00:59:12.554101Z claco  $
 package Catalyst::Helper::Model::SVN;
 use strict;
 use warnings;

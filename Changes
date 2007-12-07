@@ -1,6 +1,9 @@
 Revision history for Perl module Catalyst::Model::SVN
 
-0.08 
+0.09 Fri Dec 7 11:48:27 2007
+    - Fix crash when calling ls for a directory with a trailing / in the path requested which occurs when your SVn server is over HTTP and below the root directory.
+
+0.08 Thu Dec 6 18:35:57 2007
     - Make _repos_path collapse URLs with multiple // in them. Tests for this.
     - Stop warnings being fatal in the Makefile, this breaks me on some perls.
     - Add propget as a method on Model::SVN, as well as on ::Items. Tests for this.
