@@ -1,5 +1,8 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.10 Sat Dec 8 01:18:05 2007
+   - Fix a nasty bug causing SVN::Ra to throw an exception in some versions (i.e. on my Debian box)
+
 0.09 Fri Dec 7 11:48:27 2007
     - Fix crash when calling ls for a directory with a trailing / in the path requested which occurs when your SVn server is over HTTP and below the root directory.
 

@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.09/lib/Catalyst/Model/SVN.pm 766 2007-12-07T11:43:20.989565Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.10/lib/Catalyst/Model/SVN.pm 774 2007-12-08T01:13:10.632336Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -14,20 +14,21 @@ use Scalar::Util qw/blessed/;
 use Carp qw/confess croak/;
 use base 'Catalyst::Base';
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 __PACKAGE__->config( revision => 'HEAD' );
 
 sub new {
     my ( $self, $c ) = @_;
-    $self = $self->NEXT::new(@_);
 
+    $self = $self->SUPER::new(@_);
     my $root_pool = SVN::Pool->new_default;
     my $ra        = SVN::Ra->new(
-        url  => $self->repository,
+        url  => $self->repository->as_string,
         auth => undef,
-        pool => $root_pool
+        pool => $root_pool,
     );
+    
     $self->{pool} = $root_pool;
     $self->{ra}   = $ra;
 
@@ -139,12 +140,10 @@ sub properties_hr {
     return ( $self->_get_file( $path, $revision ) )[1];
 }
 
-=for comment _get_file( $path [, $revision] )
-
-Calls the L<SVN::Ra> get_file method. Handles directories and files which 
-have moved in older revisions
-
-=cut
+# _get_file( $path [, $revision] )
+#
+# Calls the L<SVN::Ra> get_file method. Handles directories and files which 
+# have moved in older revisions
 
 sub _get_file {
     my ( $self, $path, $revision ) = @_;

@@ -8,7 +8,7 @@ use DateTime;
 use Carp qw( confess );
 use overload '""' => \&stringify, fallback => 1;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 sub new {
     my ( $class, $args ) = @_;
