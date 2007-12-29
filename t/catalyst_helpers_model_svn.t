@@ -1,5 +1,5 @@
 #!perl -w
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.10/t/catalyst_helpers_model_svn.t 742 2007-12-02T18:41:42.439142Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.11/t/catalyst_helpers_model_svn.t 742 2007-12-02T18:41:42.439142Z bobtfish  $
 use strict;
 use warnings;
 use Test::More;

@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.10/lib/Catalyst/Model/SVN.pm 774 2007-12-08T01:13:10.632336Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.11/lib/Catalyst/Model/SVN.pm 852 2007-12-29T21:28:06.835099Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -12,19 +12,20 @@ use DateTime;
 use Catalyst::Model::SVN::Item;
 use Scalar::Util qw/blessed/;
 use Carp qw/confess croak/;
-use base 'Catalyst::Base';
+use base 'Catalyst::Model';
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 __PACKAGE__->config( revision => 'HEAD' );
 
 sub new {
-    my ( $self, $c ) = @_;
-
-    $self = $self->SUPER::new(@_);
+    my ( $self, $c, $config ) = @_;
+    
+    $self = $self->NEXT::new(@_);
+    
     my $root_pool = SVN::Pool->new_default;
     my $ra        = SVN::Ra->new(
-        url  => $self->repository->as_string,
+        url  => $self->repository,
         auth => undef,
         pool => $root_pool,
     );
@@ -50,18 +51,18 @@ sub revision {
 sub repository {
     my ($self) = @_;
 
-    return $self->{repos} if $self->{repos};
+    return $self->{repository} if $self->{repository};
 
     my $repos = $self->config->{repository};
     confess('No configured repository!') unless defined $repos;
 
-    return $self->{repos} = URI->new($repos);
+    return $self->{repository} = $repos;
 }
 
 sub ls {
     my ( $self, $path, $revision ) = @_;
     
-    $revision ||= $self->config->{revision};
+    $revision ||= ($self->{revision} || $self->config->{revision});
     if ( $revision eq 'HEAD' ) {
         $revision = $SVN::Core::INVALID_REVNUM;
     }
@@ -109,7 +110,7 @@ sub _ra_path { # FIXME - This is fugly..
         $ra_path = file( $uri->path );
     }
     else {
-        $ra_path = file( $self->repository->path, $path );
+        $ra_path = file( URI->new($self->repository)->path, $path );
     }
     
     $ra_path = $ra_path->stringify;

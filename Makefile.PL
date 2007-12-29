@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.10/Makefile.PL 753 2007-12-06T18:23:38.850954Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.11/Makefile.PL 753 2007-12-06T18:23:38.850954Z bobtfish  $
 use ExtUtils::MakeMaker;
 use 5.008;
 use strict;

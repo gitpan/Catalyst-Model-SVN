@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More tests => 5;
-use Test::Exception;
+# Not using Test::Exception any more as it doesn't play nicely with NEXT :(
 use Catalyst::Model::SVN;
 use Scalar::Util qw(blessed);
 
@@ -13,11 +13,17 @@ my @args;
     };
 };
 
-throws_ok { Catalyst::Model::SVN->new() } qr/repository/, 'Throws with no config';
+eval { 
+    Catalyst::Model::SVN->new(); 
+};
+ok($@, 'Throws with no config');
 Catalyst::Model::SVN->config(
     repository => 'http://www.test.com/svn/repos/',
 );
-lives_ok {Catalyst::Model::SVN->new()} 'Can construct';
+eval {
+    Catalyst::Model::SVN->new();
+};
+ok(!$@, 'Can construct');
 ok(scalar(@args), 'Has args');
 my $self = shift(@args);
 my %p = @args;
