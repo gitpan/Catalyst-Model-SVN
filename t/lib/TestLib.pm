@@ -20,7 +20,7 @@ sub create_svn_repos {
         }
 
         $self->{tempdir} = tempdir( %p );
-        warn('Created temp directory at ' . $self->tempdir) if $ENV{DEBUG_TEST}
+        warn('Created temp directory at ' . $self->{tempdir}) if $ENV{DEBUG_TEST};
     };
 
     chdir($self->{tempdir}) || die 'Could not change to temp directory';
@@ -39,7 +39,7 @@ sub create_svn_repos {
     my $svnserve = `which svnserve`;
     chomp($svnserve);
     die('Cannot locate svnserve') unless $svnserve;
-    
+    warn("Created repository, svnserve is $svnserve") if $ENV{DEBUG_TEST};
     # Nasty hackery here :(
     if ($self->{svnserve_pid} = fork) {
     	# Parent, continue!
@@ -49,11 +49,14 @@ sub create_svn_repos {
     else {
     	die "cannot fork: $!" unless defined $self->{svnserve_pid};
     	$|++;
-    	exec($svnserve, '-r', 'repos', '-d', '--foreground') or die("Could not exec $svnserve");
+	my @cmd = ($svnserve, '-r', 'repos', '-d', '--foreground');
+    	warn("Running " . join(" ", @cmd)) if $ENV{DEBUG_TEST};
+	exec(@cmd) or die("Could not exec $svnserve");
     	exit;
     }
     
     my $cmd = 'svn co ' . $self->{repos_uri} . ' checkout';
+    warn("Running $cmd") if $ENV{DEBUG_TEST};
     die('first checkout did not work: ' . $cmd)
         if (system($cmd));
 
@@ -96,6 +99,8 @@ sub create_svn_repos {
     # Revision 5
     die('Move dir failed')
         if (system('svn move subdir/s3 subdir/s3.moved && svn commit -m"Do another move"'));
+
+    warn("Finished creating repositry, returning " . $self->{repos_uri}) if $ENV{DEBUG_TEST};
 
     return $self->{repos_uri};
 }

@@ -1,5 +1,5 @@
 #!perl -w
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.11/t/pod_spelling.t 757 2007-12-06T18:24:47.473651Z bobtfish  $
+# $Id: /local/Catalyst-Model-SVN/t/pod_spelling.t 750 2007-12-05T19:14:27.796285Z t0m  $
 use strict;
 use warnings;
 use Test::More;

@@ -1,5 +1,10 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.12 Mon May 26 09:55:13 2008
+   - Build module with ShipIt
+   - Fix bug causing freeze when no config was supplied + test.
+   - Add extra debugging when $ENV{DEBUG_TEST} is set.
+
 0.11 Sat Dec 29 21:27:51 2007
    - Fix getting the config from outside the class (i.e. config from an    
      external config file now works). No tests yet, but seems to work.

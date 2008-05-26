@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.11/lib/Catalyst/Model/SVN.pm 852 2007-12-29T21:28:06.835099Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/trunk/lib/Catalyst/Model/SVN.pm 4884 2008-05-26T09:02:42.083076Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -14,15 +14,18 @@ use Scalar::Util qw/blessed/;
 use Carp qw/confess croak/;
 use base 'Catalyst::Model';
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
+__PACKAGE__->mk_ro_accessors('repository');
 __PACKAGE__->config( revision => 'HEAD' );
 
 sub new {
     my ( $self, $c, $config ) = @_;
-    
+
     $self = $self->NEXT::new(@_);
-    
+
+    die("No configured repository") unless $self->repository;
+
     my $root_pool = SVN::Pool->new_default;
     my $ra        = SVN::Ra->new(
         url  => $self->repository,
@@ -46,17 +49,6 @@ sub revision {
     my $self    = shift;
     my $subpool = SVN::Pool::new_default_sub;
     return $self->_ra->get_latest_revnum();
-}
-
-sub repository {
-    my ($self) = @_;
-
-    return $self->{repository} if $self->{repository};
-
-    my $repos = $self->config->{repository};
-    confess('No configured repository!') unless defined $repos;
-
-    return $self->{repository} = $repos;
 }
 
 sub ls {

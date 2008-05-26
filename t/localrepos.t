@@ -8,6 +8,7 @@ use TestLib;
 use Catalyst::Model::SVN;
 use Test::More;
 use Test::Exception; 
+$|++;
 
 my $TESTS = 60;
 my ($testlib, $repos_uri);
@@ -22,7 +23,6 @@ plan tests => $TESTS;
 print "Starting real testing:\n";
 
 throws_ok { Catalyst::Model::SVN->new() } qr/repository/, 'Throws with no config';
-
 lives_ok {
     Catalyst::Model::SVN->config(
         repository => $repos_uri,

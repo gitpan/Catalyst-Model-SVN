@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/tags/0.11/Makefile.PL 753 2007-12-06T18:23:38.850954Z bobtfish  $
+# $Id: /mirror/claco/Catalyst-Model-SVN/trunk/Makefile.PL 4827 2008-05-26T08:51:36.007490Z bobtfish  $
 use ExtUtils::MakeMaker;
 use 5.008;
 use strict;
@@ -15,7 +15,8 @@ WriteMakefile(
         'SVN::Core'             => 0,
         'IO::Scalar'            => 0,
         'Path::Class'           => 0,
-        'DateTime'              => 0
+        'DateTime'              => 0,
+        'IO::Scalar'            => 0,
     },
     (ExtUtils::MakeMaker->VERSION >= 6.11) ?
     (NO_META => 1) : (),

@@ -4,8 +4,7 @@ NAME
 SYNOPSIS
         # Model
         __PACKAGE__->config(
-            repository => '/path/to/svn/root/or/path',
-            revision   => 'HEAD,
+            repository => '/path/to/svn/root/or/path'
         );
 
         # Controller
@@ -30,9 +29,11 @@ CONFIG
     The following configuration options are available:
 
   repository
-    This is the full path to the root of, or any directory in your
-    Subversion repository. This can be one of http://, svn://, or file:///
-    schemes.
+    Returns a URI object of the full path to the root of, or any directory
+    in your Subversion repository. This can be one of http://, svn://, or
+    file:/// schemes.
+
+    This value comes from the config key 'repository'.
 
   revision
     This is the default revision to use when no revision is specified. By
@@ -45,56 +46,21 @@ METHODS
     the original path for the "revision" specified.
 
   ls($path [, $revision])
-    Returns a array of "Catalyst::Model::SVN::Item" objects in list context,
+    Returns a array of Catalyst::Model::SVN::Item objects in list context,
     each representing an entry in the specified repository path. In scalar
     context, it returns an array reference. If "path" is a copy, the logs
     are transversed to find the original. The request is then reissued for
     the original path for the "revision" specified.
 
-    Each "Catalyst::Model::SVN::Item" object has the following methods:
+  propget($path, $propname [, $revision])
+    Returns a specific property for a path at a specified revision name.
 
-    author
-        The author of the latest revision of the current item.
+    Note: This method is inefficient, if you want to extract multiple
+    properties of a single item then use the props_hr method.
 
-    contents
-        The contents of the of the current item. This is the same as calling
-        "Catalyst::Model::SVN-"cat($item->uri, $item->revision)
-
-    is_directory
-        Returns 1 if the current item is a directory; 0 otherwise.
-
-    is_file
-        Returns 1 if the current item is a file; 0 otherwise.
-
-    kind
-        Returns the kind of the current item. See SVN::Core for the possible
-        types, usually $SVN::Node::path or $SVN::Node::file.
-
-    log Returns the last log entry for the current item. Be forewarned, this
-        makes an extra call to the repository, which is slow. Only use this
-        if you are listing a single item, and not when looping through large
-        collections of items. If the current item is a copy, the logs are
-        transversed to find the original. The request is then reissued for
-        the original path for the "revision" specified.
-
-    name
-        Returns the name of the current item.
-
-    path
-        Returns the path of the current item relative to the repository
-        root.
-
-    revision
-        Returns the revision of the current item.
-
-    size
-        Returns the raw file size in bytes for the current item.
-
-    time
-        Returns the last modified time of the current item as a DateTime
-        object.
-
-    uri Returns the full repository path of the current item.
+  properties_hr($path [, $revision])
+    Returns a reference to a hash with all the properties set on an object
+    at a specific revision.
 
   repository
     Returns the repository specified in the configuration "repository"
@@ -104,10 +70,15 @@ METHODS
     Returns the latest revisions of the repository you are connected to.
 
 SEE ALSO
-    Catalyst::Manual, Catalyst::Helper, SVN::Client, SVN::Ra
+    Catalyst::Manual, Catalyst::Helper, Catalyst::Model::SVN::Item, SVN::Ra
 
-AUTHOR
+AUTHORS
         Christopher H. Laco
         CPAN ID: CLACO
         claco@chrislaco.com
         http://today.icantfocus.com/blog/
+    
+        Tomas Doran
+        CPAN ID: BOBTFISH
+        bobtfish@bobtfish.net
+    
