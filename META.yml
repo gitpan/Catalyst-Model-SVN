@@ -1,29 +1,19 @@
 --- #YAML:1.0
-name: Catalyst::Model::SVN
-abstract: Catalyst Model to browse Subversion repositories
-author: 
-  - Christopher H. Laco <claco@chrislaco.com>
-  - Tomas Doran <bobtfish@bobtfish.net>
-version: 0.11
-version_from: lib/Catalyst/Model/SVN.pm
-installdirs: site
-license: perl
-requires:
-  Catalyst::Runtime: 0
-  SVN::Core: 0
-  IO::Scalar: 0
-  Path::Class: 0
-  DateTime: 0
-build_requires:
-  Test::More: 0
-  Test::Exception: 0
-  Catalyst::Devel: 0
-  FindBin: 0
-recommends:
-  Pod::Coverage: 0.14
-  Test::Pod: 1.00
-  Test::Pod::Coverage: 1.04
-  Test:Strict: 0.05
-  Test::Kwalitee: 0
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+name:                Catalyst-Model-SVN
+version:             0.13
+abstract:            Catalyst Model to browse Subversion repositories
+license:             ~
+author:              
+    - Christopher H. Laco <claco@chrislaco.com>, Tomas Doran <bobtfish@bobtfish.net>
+generated_by:        ExtUtils::MakeMaker version 6.42
+distribution_type:   module
+requires:     
+    Catalyst::Devel:               0
+    Catalyst::Runtime:             0
+    DateTime:                      0
+    IO::Scalar:                    0
+    Path::Class:                   0
+    SVN::Core:                     0
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

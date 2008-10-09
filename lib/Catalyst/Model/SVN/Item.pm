@@ -100,9 +100,11 @@ sub log {
 #1, # svn_boolean_t include_merged_revisions,
 #]));
     my ( $changes, $revision, $author, $date );
+    my $path = $self->path;
+    $path =~ s|^/||; 
     eval {
         $self->{svn}->_ra->get_log(
-            [ $self->path ],    #const apr_array_header_t *paths,
+            [ $path ],    #const apr_array_header_t *paths,
             $self->revision,    # svn_revnum_t start,
             $self->revision,    # svn_revnum_t end,
             1,                  # svn_boolean_t discover_changed_paths,
@@ -118,10 +120,10 @@ sub log {
     if ($@) {
         my $path
             = $self->{svn}->_resolve_copy( $self->path, $self->revision );
-
+        $path =~ s|^/||;
         if ( $path ne $self->path ) {
             $self->{svn}->_ra->get_log(
-                [$path],            #const apr_array_header_t *paths,
+                [  $path ],            #const apr_array_header_t *paths,
                 $self->revision,    # svn_revnum_t start,
                 $self->revision,    # svn_revnum_t end,
                 1,                  # svn_boolean_t discover_changed_paths,

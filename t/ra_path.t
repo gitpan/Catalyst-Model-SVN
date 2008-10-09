@@ -20,12 +20,12 @@ lives_ok { $m = Catalyst::Model::SVN->new(); } 'Can construct';
 # everything will blow up with:
 # subversion/libsvn_subr/path.c:115: failed assertion `is_canonical (component, clen)'
 
-is($m->_ra_path( '/' ), '/svn/repos', 'Root dir /');
-is($m->_ra_path( '/README' ), '/svn/repos/README', '/README is correct');
-is($m->_ra_path( '//README' ), '/svn/repos/README', '//README is correct');
+is($m->_ra_path( '/' ), '', 'Root dir ""');
+is($m->_ra_path( 'README' ), 'README', '/README is correct');
+is($m->_ra_path( '//README' ), 'README', '//README is correct');
 
-is($m->_ra_path( $repos_uri ), '/svn/repos', 'full URI Root dir /');
-is($m->_ra_path( $repos_uri . 'README' ), '/svn/repos/README', 'full URI /README is correct');
-is($m->_ra_path( $repos_uri . '/README' ), '/svn/repos/README', 'full URI //README is correct');
+is($m->_ra_path( $repos_uri ), '', 'full URI Root dir /');
+is($m->_ra_path( $repos_uri . 'README' ), 'README', 'full URI /README is correct');
+is($m->_ra_path( $repos_uri . '/README' ), 'README', 'full URI //README is correct');
 
 

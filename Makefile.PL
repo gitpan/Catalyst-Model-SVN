@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/trunk/Makefile.PL 4827 2008-05-26T08:51:36.007490Z bobtfish  $
+# $Id: /mirror/projects/Catalyst-Model-SVN/branches/fix-svn-1_5/Makefile.PL 8053 2008-10-09T23:36:54.691290Z bobtfish  $
 use ExtUtils::MakeMaker;
 use 5.008;
 use strict;
@@ -18,8 +18,6 @@ WriteMakefile(
         'DateTime'              => 0,
         'IO::Scalar'            => 0,
     },
-    (ExtUtils::MakeMaker->VERSION >= 6.11) ?
-    (NO_META => 1) : (),
     dist => {
         PREOP => 'pod2text lib/Catalyst/Model/SVN.pm > $(DISTVNAME)/README',
     },

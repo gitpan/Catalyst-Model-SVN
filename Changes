@@ -1,5 +1,10 @@
 Revision history for Perl module Catalyst::Model::SVN
 
+0.13 Fri Oct 10 00:35:00 2008
+   - Fix META.yml to conform to current spec (removing from SVN dist).
+   - Test suite compatibility with SVN 1.5 (RT#39918) - unsure if this is
+     enough to work in production, but it looks hopeful.
+
 0.12 Mon May 26 09:55:13 2008
    - Build module with ShipIt
    - Fix bug causing freeze when no config was supplied + test.

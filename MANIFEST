@@ -6,7 +6,6 @@ LICENSE
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-META.yml
 README
 t/basic.t
 t/catalyst_helpers_model_svn.t
@@ -23,3 +22,4 @@ t/stress.t
 t/strict.t
 t/warnings.t
 Todo
+META.yml                                 Module meta-data (added by MakeMaker)

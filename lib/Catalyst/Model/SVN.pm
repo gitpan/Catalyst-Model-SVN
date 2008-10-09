@@ -1,4 +1,4 @@
-# $Id: /mirror/claco/Catalyst-Model-SVN/trunk/lib/Catalyst/Model/SVN.pm 4884 2008-05-26T09:02:42.083076Z bobtfish  $
+# $Id: /mirror/projects/Catalyst-Model-SVN/branches/fix-svn-1_5/lib/Catalyst/Model/SVN.pm 8052 2008-10-09T23:21:36.257589Z bobtfish  $
 package Catalyst::Model::SVN;
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ use Scalar::Util qw/blessed/;
 use Carp qw/confess croak/;
 use base 'Catalyst::Model';
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 __PACKAGE__->mk_ro_accessors('repository');
 __PACKAGE__->config( revision => 'HEAD' );
@@ -61,8 +61,9 @@ sub ls {
     my $subpool = SVN::Pool::new_default_sub;
 
     my @nodes;
+    my $mypath = _ra_path( $self, $path );
     my ( $dirents, $revnum, $props )
-        = $self->_ra->get_dir( _ra_path( $self, $path ), $revision );
+        = $self->_ra->get_dir( $mypath, $revision );
 
 # Note that simple data which comes back here is ok, but the dirents data structure
 # will be magically deallocated when $subpool goes out of scope, so we borg all the
@@ -94,21 +95,15 @@ sub ls {
 sub _ra_path { # FIXME - This is fugly..
     my ( $self, $path ) = @_;
     $path ||= '/';
-    my $uri = URI->new($path);
-    $path =~ s|//+|/|;
-    my $ra_path;
-    if ($uri->scheme) {
-        # Was full URI
-        $ra_path = file( $uri->path );
+    if ($path =~ s|\w+://[\w\.]+/||) {
+        my $repos_path = URI->new($self->repository)->path;
+        $repos_path =~ s|^/||;
+        $path =~ s/^$repos_path//;
     }
-    else {
-        $ra_path = file( URI->new($self->repository)->path, $path );
-    }
-    
-    $ra_path = $ra_path->stringify;
-    $ra_path =~ s|/$||; # Remove trailing / or svn can crash
-    
-    return $ra_path;
+    $path =~ s|/$||; # Remove trailing / or svn can crash
+    $path =~ s|//+|/|g; # Replace multiple slashes with a single slash
+    $path =~ s|^/||; # Remove leading / or svn 1.5 asserts.  
+    return $path;
 }
 
 sub cat {
@@ -162,7 +157,6 @@ sub _get_file {
 
     if ( $@ =~ /ile not found/ ) {
         $repos_path = $self->_resolve_copy( $repos_path, $revision );
-
         if ( $repos_path ne $requested_path ) {
             return $self->_get_file( $repos_path, $revision );
         }
@@ -174,7 +168,6 @@ sub _get_file {
 sub _resolve_copy {
     my ( $self, $path, $revision ) = @_;
     my $subpool = SVN::Pool::new_default_sub;
-
     my $copyfrom;
     $self->_ra->get_log(
         [$path],                       # const apr_array_header_t *paths,
@@ -186,13 +179,16 @@ sub _resolve_copy {
         sub {    # svn_log_entry_receiver_t receiver, void *receiver_baton
             return if $copyfrom;
             my $changes = shift;
+            use Data::Dumper;
             foreach my $change ( keys %$changes ) {
                 my $obj    = $changes->{$change};
                 my $action = $obj->action;
                 $copyfrom = $obj->copyfrom_path;
+                $copyfrom =~ s|^/||;
+                $change =~ s|^/||;
+                my $copyfrom_rev = $obj->copyfrom_rev;
                 if ( $obj->action eq 'A' && $copyfrom ) {
                     $path =~ s/$change/$copyfrom/;
-                    last;
                 }
             }
         },
@@ -298,4 +294,10 @@ L<Catalyst::Manual>, L<Catalyst::Helper>, L<Catalyst::Model::SVN::Item>, L<SVN::
     Tomas Doran
     CPAN ID: BOBTFISH
     bobtfish@bobtfish.net
-    
+   
+=head1 LICENSE
+
+        Copyright (c) 2005-2008 the aforementioned authors. All rights
+        reserved. This program is free software; you can redistribute
+        it and/or modify it under the same terms as Perl itself.
+ 

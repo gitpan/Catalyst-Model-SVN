@@ -13,15 +13,8 @@ sub new {
 
 sub create_svn_repos {
     my ( $self ) = @_;
-    {
-        my %p;
-        if (! $ENV{DEBUG_TEST}) {
-            $p{CLEANUP} = 1;
-        }
-
-        $self->{tempdir} = tempdir( %p );
-        warn('Created temp directory at ' . $self->{tempdir}) if $ENV{DEBUG_TEST};
-    };
+    $self->{tempdir} = tempdir();
+    warn('Created temp directory at ' . $self->{tempdir}) if $ENV{DEBUG_TEST};
 
     chdir($self->{tempdir}) || die 'Could not change to temp directory';
 
@@ -108,7 +101,7 @@ sub create_svn_repos {
 sub DESTROY {
     my ( $self ) = @_;
     system('kill ' . $self->{svnserve_pid});
-    # FIXME - trust File::Temp to tear down temp dir
+    system('rm -rf ' . $self->{tempdir});
 }
 
 1;
